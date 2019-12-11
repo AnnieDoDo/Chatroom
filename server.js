@@ -209,6 +209,41 @@ app.post('/update', cors({credentials: true,origin: 'http://localhost:4500'}), (
     }
 });
 
+app.post('/delete', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+    if(!req.session.acc){
+        console.log("You have to login first.")
+        res.end("You have to login first.")
+    }else{
+        sql.checkAdmin(req.session.acc)
+        .then(admindata => {
+            if(admindata)
+            {
+                let bufferStr = "";
+                console.log(req.body)
+                req.on('data', data => {
+                bufferStr += data.toString()
+                })
+                req.on('end', () => {
+                    let reqObj = JSON.parse(bufferStr);
+                    var data1=reqObj.accountdata;
+                    sql.deleteMember(data1)
+                    .then(member =>{
+                        let members = JSON.stringify(member);
+                        console.log(members)
+                        if(members==1){
+                            res.end("deleteOK")
+                        }else{
+                            res.end("deleteFail")
+                        }
+                    })
+                })
+            }else{
+                res.end("You don't have this permission")
+            }
+        })
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Running on ${PORT}`);
 });
