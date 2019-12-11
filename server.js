@@ -147,15 +147,29 @@ app.post('/create', cors({credentials: true,origin: 'http://localhost:4500'}), (
 });
 
 app.get('/read', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-    sql.readMember()
-    .then(members =>{
-        console.log(members)
-        if(members){
-            res.end(members)
-        }else{
-            res.end("readFail")
-        }
-    })
+    if(!req.session.acc){
+        console.log("You have registered before.")
+        res.end("You have registered before.")
+    }else{
+        sql.checkAdmin(req.session.acc)
+        .then(admindata => {
+            if(admindata)
+            {
+                sql.readMember()
+                .then(member =>{
+                    let members = JSON.stringify(member);
+                    console.log(members)
+                    if(members){
+                        res.end(members)
+                    }else{
+                        res.end("readFail")
+                    }
+                })
+            }else{
+                res.end("You don't have this permission")
+            }
+        })
+    }
 });
 
 app.listen(PORT, () => {
