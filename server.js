@@ -29,14 +29,14 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.post('/loginSubmit', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+app.post('/login', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
     let bufferStr = "";
     req.on('data', data => {
       bufferStr += data.toString()
     })
     req.on('end', () => {
       let reqObj = JSON.parse(bufferStr);
-      var data1=reqObj.email;
+      var data1=reqObj.accountdata;
       var data2=reqObj.password;
       //console.log(data1)
       //console.log(data2)
@@ -62,7 +62,7 @@ app.post('/loginSubmit', cors({credentials: true,origin: 'http://localhost:4500'
     });
 });
 
-app.post('/registerSubmit',cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+app.post('/register',cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
     let bufferStr = "";
     console.log(req.body)
     req.on('data', data => {
@@ -70,7 +70,7 @@ app.post('/registerSubmit',cors({credentials: true,origin: 'http://localhost:450
     })
     req.on('end', () => {
       let reqObj = JSON.parse(bufferStr);
-      var data1=reqObj.email;
+      var data1=reqObj.accountdata;
       var data2=reqObj.password;
       //console.log(data1)
       //console.log(data2)
@@ -116,7 +116,7 @@ app.post('/create', cors({credentials: true,origin: 'http://localhost:4500'}), (
             })
             req.on('end', () => {
                 let reqObj = JSON.parse(bufferStr);
-                var data1=reqObj.email;
+                var data1=reqObj.accountdata;
                 var data2=reqObj.password;
                 //console.log(data1)
                 //console.log(data2)
@@ -148,8 +148,8 @@ app.post('/create', cors({credentials: true,origin: 'http://localhost:4500'}), (
 
 app.get('/read', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
     if(!req.session.acc){
-        console.log("You have registered before.")
-        res.end("You have registered before.")
+        console.log("You have to login first.")
+        res.end("You have to login first.")
     }else{
         sql.checkAdmin(req.session.acc)
         .then(admindata => {
@@ -164,6 +164,43 @@ app.get('/read', cors({credentials: true,origin: 'http://localhost:4500'}), (req
                     }else{
                         res.end("readFail")
                     }
+                })
+            }else{
+                res.end("You don't have this permission")
+            }
+        })
+    }
+});
+
+app.post('/update', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+    if(!req.session.acc){
+        console.log("You have to login first.")
+        res.end("You have to login first.")
+    }else{
+        sql.checkAdmin(req.session.acc)
+        .then(admindata => {
+            if(admindata)
+            {
+                let bufferStr = "";
+                console.log(req.body)
+                req.on('data', data => {
+                bufferStr += data.toString()
+                })
+                req.on('end', () => {
+                    let reqObj = JSON.parse(bufferStr);
+                    var data1=reqObj.accountdata;
+                    var data2=reqObj.password;
+                    var data3=reqObj.admin;
+                    sql.updateMember(data1,data2,data3)
+                    .then(member =>{
+                        let members = JSON.stringify(member);
+                        console.log(members)
+                        if(members){
+                            res.end("updateOK")
+                        }else{
+                            res.end("updateFail")
+                        }
+                    })
                 })
             }else{
                 res.end("You don't have this permission")

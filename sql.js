@@ -28,7 +28,7 @@ Account.init({
     type: Sequelize.BOOLEAN,
     allowNull: false,
   },
-  email: {
+  accountdata: {
     type: Sequelize.STRING,
     allowNull: false,
   },
@@ -51,7 +51,7 @@ Chatroom.init({
     allowNull: false,
     primaryKey: true
   },
-  account: {
+  accountdata: {
     type: Sequelize.STRING,
     allowNull: false,
   },
@@ -73,15 +73,15 @@ module.exports = {
         return Account.findOne({
         attributes: ['password'],
         where:{
-          email:searchData,
+          accountdata:searchData,
           }
         })   
     },
     checkIfAccountExist : function(checkAcc){
         return Account.findOne({
-          attributes:['email'],
+          attributes:['accountdata'],
           where:{
-            email: checkAcc,
+            accountdata: checkAcc,
           },
           raw: true
         })
@@ -92,7 +92,7 @@ module.exports = {
         return Account.upsert({
             aid : uuidv4(),
             admin : 0,
-            email : newData1,
+            accountdata : newData1,
             password : newData2,
         }).then(()=>{
             console.log("success")
@@ -105,11 +105,11 @@ module.exports = {
             return ifreg
         })
     },
-    checkAdmin : function(account){
+    checkAdmin : function(accountdata){
         return Account.findOne({
             attributes:['admin'],
             where:{
-                email: account,
+                accountdata: accountdata,
                 admin: 1
             },
             raw: true
@@ -117,9 +117,30 @@ module.exports = {
     },
     readMember : function(){
         return Account.findAll({
-            attributes:['email','password','admin'],
+            attributes:['accountdata','password','admin'],
             raw: true
         })   
     },
+    updateMember : function(change1,change2,change3){
+        return Account.update(
+            {
+                password: change2,
+                admin: change3
+            },
+            { 
+                where:{
+                accountdata: change1
+            },
+            raw: true
+        })
+    },
+    deleteMember : function(deleteacc){
+        return Account.destroy({
+            where:{
+                accountdata: deleteacc
+            }
+        })
+
+    }
 
 };
