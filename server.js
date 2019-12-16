@@ -7,13 +7,21 @@ const cors = require('cors')
 const bodyParser  = require('body-parser');
 const client = redis.createClient();
 const sql = require('./sql');
+const fs = require("fs");
+const https = require("https");
 
 const PORT = 4500;
 const HOST = 'localhost';
 const originaddr = 'http://localhost:8080'
 const app = express();
-const server = require('http').createServer(app);
+const server = require('https').createServer(app);
 const io = require('socket.io')(server);
+const httpsOptions = {
+    cert : fs.readFileSync(""),
+    ca : fs.readFileSync(""),
+    key : fs.readFileSync("")
+   }
+   
 
 const Apis = require('./apis')
 
