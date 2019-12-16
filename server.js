@@ -12,15 +12,16 @@ const https = require("https");
 
 const PORT = 4500;
 const HOST = 'localhost';
-const originaddr = 'http://localhost:8080'
+const originaddr = '*'
 const app = express();
-const server = require('https').createServer(app);
+
 const io = require('socket.io')(server);
 const httpsOptions = {
     cert : fs.readFileSync(""),
     ca : fs.readFileSync(""),
     key : fs.readFileSync("")
    }
+const server = require('https').createServer(httpOptions,app);
    
 
 const Apis = require('./apis')
