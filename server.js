@@ -8,10 +8,14 @@ const bodyParser  = require('body-parser');
 const client = redis.createClient();
 const sql = require('./sql');
 
-
 const PORT = 4500;
 const HOST = 'localhost';
+const originaddr = 'http://localhost:8080'
 const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
+const Apis = require('./apis')
 
 app.use(session({
   store: new RedisStore({ host: 'localhost', port: 4000, client: client}),
@@ -26,43 +30,19 @@ app.use(session({
     }, 
 }));
 
+io.on('connection', socket => {
+    socket.on('getMessage', message => {
+        //回傳 message 給發送訊息的 Client
+        io.sockets.emit('getMessage', message)
+    })
+});
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.post('/login', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-    let bufferStr = "";
-    req.on('data', data => {
-      bufferStr += data.toString()
-    })
-    req.on('end', () => {
-      let reqObj = JSON.parse(bufferStr);
-      var data1=reqObj.accountdata;
-      var data2=reqObj.password;
-      //console.log(data1)
-      //console.log(data2)
-      sql.search(data1)
-      .then(data => {
-        //console.log(data)
-        if(data)
-        {
-          var checkpassword = data.password
-          console.log(checkpassword)
-          if(checkpassword == data2){
-            req.session.acc = data1
-            res.end('logSubOK')
-          }else{
-            res.end('Invalid password')
-            console.log('Invalid password')
-          }  
-        }else{
-            res.end(`Unauthorized!`) 
-            console.log('Unauthorized!')
-        }
-      })
-    });
-});
+app.post('/login', cors({credentials: true,origin: originaddr}), Apis.login);
 
-app.post('/register',cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+app.post('/register',cors({credentials: true,origin: originaddr}), (req, res) => {
     let bufferStr = "";
     console.log(req.body)
     req.on('data', data => {
@@ -94,21 +74,21 @@ app.post('/register',cors({credentials: true,origin: 'http://localhost:4500'}), 
     });
 });
 
-app.get('/logout', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
+app.get('/logout', cors({credentials: true,origin: originaddr}), (req, res) => {
   req.session.destroy();
   console.log("logout")
   res.end('logoutOK');
 });
 
-app.post('/create', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-  if(!req.session.acc){
+app.post('/create', cors({credentials: true,origin: originaddr}), (req, res) => {
+  /*if(!req.session.acc){
     console.log("You have registered before.")
     res.end("You have registered before.")
   }else{
     sql.checkAdmin(req.session.acc)
     .then(admindata => {
         console.log(admindata)
-        if(admindata){
+        if(admindata){*/
             let bufferStr = "";
             console.log(req.body)
             req.on('data', data => {
@@ -138,23 +118,23 @@ app.post('/create', cors({credentials: true,origin: 'http://localhost:4500'}), (
                     }
                 })
             });
-        }else{
-            res.end("You don't have this permission")
+        /* }else{
+            res.end("You dont have this permission")
         }
     })
 
-  }
+  }*/
 });
 
-app.get('/read', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-    if(!req.session.acc){
+app.get('/read', cors({credentials: true,origin: originaddr}), (req, res) => {
+    /*if(!req.session.acc){
         console.log("You have to login first.")
         res.end("You have to login first.")
     }else{
         sql.checkAdmin(req.session.acc)
         .then(admindata => {
             if(admindata)
-            {
+            {*/
                 sql.readMember()
                 .then(member =>{
                     let members = JSON.stringify(member);
@@ -165,22 +145,22 @@ app.get('/read', cors({credentials: true,origin: 'http://localhost:4500'}), (req
                         res.end("readFail")
                     }
                 })
-            }else{
-                res.end("You don't have this permission")
+           /* }else{
+                res.end("You dont have this permission")
             }
         })
-    }
+    }*/
 });
 
-app.post('/update', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-    if(!req.session.acc){
+app.post('/update', cors({credentials: true,origin: originaddr}), (req, res) => {
+    /*if(!req.session.acc){
         console.log("You have to login first.")
         res.end("You have to login first.")
     }else{
         sql.checkAdmin(req.session.acc)
         .then(admindata => {
             if(admindata)
-            {
+            {*/
                 let bufferStr = "";
                 console.log(req.body)
                 req.on('data', data => {
@@ -202,22 +182,22 @@ app.post('/update', cors({credentials: true,origin: 'http://localhost:4500'}), (
                         }
                     })
                 })
-            }else{
-                res.end("You don't have this permission")
+            /*}else{
+                res.end("You dont have this permission")
             }
         })
-    }
+    }*/
 });
 
-app.post('/delete', cors({credentials: true,origin: 'http://localhost:4500'}), (req, res) => {
-    if(!req.session.acc){
+app.post('/delete', cors({credentials: true,origin: originaddr}), (req, res) => {
+    /*if(!req.session.acc){
         console.log("You have to login first.")
         res.end("You have to login first.")
     }else{
         sql.checkAdmin(req.session.acc)
         .then(admindata => {
             if(admindata)
-            {
+            {*/
                 let bufferStr = "";
                 console.log(req.body)
                 req.on('data', data => {
@@ -237,13 +217,37 @@ app.post('/delete', cors({credentials: true,origin: 'http://localhost:4500'}), (
                         }
                     })
                 })
-            }else{
-                res.end("You don't have this permission")
+            /*}else{
+                res.end("You dont have this permission")
             }
         })
-    }
+    }*/
 });
 
-app.listen(PORT, () => {
+app.post('/message',cors({credentials: true,origin: originaddr}), (req, res) => {
+    let bufferStr = "";
+    console.log(req.body)
+    req.on('data', data => {
+      bufferStr += data.toString()
+    })
+    req.on('end', () => {
+      let reqObj = JSON.parse(bufferStr);
+      var data1=reqObj.accountdata;
+      var data2=reqObj.text;
+      //console.log(data1)
+      //console.log(data2)
+        sql.storeMessage(data1 , data2)
+        .then(data => {
+        if(data == 'success')
+        {
+            res.end('messageOK') 
+        }else{
+            res.end('messageFail') 
+        }
+        })
+    });
+  });
+
+server.listen(PORT, () => {
     console.log(`Running on ${PORT}`);
 });

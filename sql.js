@@ -1,72 +1,5 @@
-const Sequelize = require('sequelize');
+const {Account, Chatroom} = require('./models')
 const uuidv4 = require('uuid/v4');
-
-const sequelize = new Sequelize( {
-    dialect: 'sqlite',
-    storage: './sqldev.db'
-  });
-
-  sequelize.authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.');
-  })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-});
-
-const Model = Sequelize.Model;
-
-class Account extends Model {}
-Account.init({
-  // attributes
-  aid: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true
-  },
-  admin: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-  },
-  accountdata: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  password: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  }
- 
-}, {
- 
-  sequelize,
-  modelName: 'account'
-})
-
-class Chatroom extends Model {}
-Chatroom.init({
-  // attributes
-  cid: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true
-  },
-  accountdata: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  text: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  }
- 
-}, {
- 
-  sequelize,
-  modelName: 'chatroom'
-})
-
-
 
 module.exports = {
     search : function(searchData){
@@ -117,7 +50,7 @@ module.exports = {
     },
     readMember : function(){
         return Account.findAll({
-            attributes:['accountdata','password','admin'],
+            attributes:['accountdata','admin'],
             raw: true
         })   
     },
@@ -141,6 +74,24 @@ module.exports = {
             }
         })
 
+    },
+    storeMessage: function(acc,words){
+      var ifreg = ''
+
+      return Chatroom.upsert({
+          cid : uuidv4(),
+          accountdata : acc,
+          text : words,
+      }).then(()=>{
+          console.log("success")
+          ifreg = 'success'
+          return ifreg
+      })
+      .catch(error => {
+          console.log("unsuccess")
+          ifreg = 'unsuccess'
+          return ifreg
+      })
     }
 
 };
